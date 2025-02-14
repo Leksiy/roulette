@@ -19,6 +19,7 @@ class Roulette:
 class Gamer:
     def __init__(self):
         self.BET_COLOR = 'Red'
+        self.COUNT_LOSS = 0
         self.COUNT_SET = int(input('Количество попыток (Enter = 1000) ').strip() or '1000')
         self.money = int(input('Начальная сумма (Enter = 5000 $) ').strip() or '5000')
 
@@ -44,12 +45,12 @@ class Game:
             color = roulette.round()
             if gamer.BET_COLOR == color[0]:
                 gamer.money += bet
-                print(f'Выигрыш ', end='')
+                print(f'Выигрыш. ', end='')
                 result = True
             else:
                 gamer.money -= bet
-                print(f'Проигрыш ', end='')
-            print(f'На счету: ({gamer.money}) $')
+                print(f'Проигрыш. ', end='')
+            print(f'На счету: {gamer.money} $')
         return result
 
     def game_end(self, gamer, bet):
@@ -73,5 +74,8 @@ if __name__ == '__main__':
             game_end = game.game_set(gamer, roulette)
             if not game_end:
                 game.round = j + 2
+                if j == game.COUNT_REDOUBLE - 1:
+                    gamer.COUNT_LOSS += 1
             else:
                 break
+    print(f'Игра завершена. На счету: {gamer.money} $. Поражений: {gamer.COUNT_LOSS}')
