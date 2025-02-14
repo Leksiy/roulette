@@ -67,7 +67,7 @@ if __name__ == '__main__':
     for i in range(gamer.COUNT_SET):
         if gamer.money == 0:
             break
-        print(f'Раунд {i}')
+        print(f'Раунд {i + 1}')
         game.game_new()
         for j in range(game.COUNT_REDOUBLE):
             game_end = game.game_set(gamer, roulette)
