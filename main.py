@@ -3,79 +3,161 @@ from colorama import Fore as color_text
 
 class Roulette:
     def __init__(self):
+        """
+        Класс рулетки
+        :return: None
+        """
+        super().__init__()
         self.COLOR = ['Red', 'Blue']
+        self.color_current = 0
+
+    def __str__(self):
+        str = 'Цвет рулетки: '
+        match self.color_current:
+            case 0:
+                str += color_text.RED + 'Red '
+            case 1:
+                str += color_text.BLUE + f'Blue '
+        str += color_text.RESET
+        return str
 
     def round(self):
-        result = randint(0, 1)
-        print(f'Цвет рулетки ', end='')
-        match result:
-            case 0:
-                print(color_text.RED, f'Red ', end='')
-            case 1:
-                print(color_text.BLUE, f'Blue ', end='')
-        print(color_text.RESET, end='')
-        return [self.COLOR[result], result]
+        """
+        Какой цвет сыграл?
+        Код цвета: 0 - красный, 1 - голубой
+        :return: [цвет, код цвета]
+        :rtype: (str, int)
+        """
+        self.color_current = randint(0, 1)
+        return [self.COLOR[self.color_current], self.color_current]
 
 class Gamer:
     def __init__(self):
+        """
+        Класс игрока
+        :return: None
+        """
+        super().__init__()
         self.BET_COLOR = 'Red'
-        self.COUNT_LOSS = 0
-        self.COUNT_SET = int(input('Количество попыток (Enter = 1000): ').strip() or '1000')
+        self.LOSS_COUNT = 0
+        self.SET_COUNT = int(input('Количество попыток (Enter = 1000): ').strip() or '1000')
         self.money = int(input('Начальная сумма (Enter = 5000 $): ').strip() or '5000')
 
-    def print_money(self):
-        print(f'На счету: {self.money} $')
+    def __str__(self):
+        str = f'На счету: {self.money} $. '
+        return str
 
     def get_money(self):
+        """
+        Получить состояние счета
+        :return: Количество денег на счету
+        :rtype: int
+        """
         return self.money
 
 class Game:
-    def __init__(self):
-        self.COUNT_REDOUBLE = int(input('Количество удвоений (Enter = 8): ').strip() or '8')
-        self.round = 1
+    def __init__(self, roulette: Roulette, gamer: Gamer):
+        """
+        Объект класса Игра: roulette - рулетка, gamer - игрок
+        :return: None
+        """
+        super().__init__()
+        self.REDOUBLE_COUNT = int(input('Количество удвоений (Enter = 8): ').strip() or '8')
+        self.round = 0
+        self.set = 0
+        self.bet = 0
+        self.roulette = roulette
+        self.gamer = gamer
 
-    def game_new(self):
-        self.round = 1
+    def __str__(self):
+        str = f'Попытка: {self.set + 1}, '
+        str += f'раунд: {self.round + 1}, '
+        str += f'ставка: {self.bet} $. '
+        return str
 
-    def game_set(self, gamer, roulette):
-        bet = pow(2, self.round - 1)
-        result = self.game_end(gamer, bet)
-        if not result:
-            print(f'Ставка: {bet} $ ', end='')
-            color = roulette.round()
-            if gamer.BET_COLOR == color[0]:
-                gamer.money += bet
-                print(f'Выигрыш. ', end='')
-                result = True
+    def set_set_game(self):
+        """
+        Установка начальных значений перед новой попыткой
+        :return: None
+        """
+        self.bet = 0
+        self.round = 0
+
+    def game_start(self):
+        """
+        Запуск игры
+        :return: None
+        """
+        for self.set in range(self.gamer.SET_COUNT):
+            self.set_set_game()
+            if self.get_game_status():
+                self.game_set()
             else:
-                gamer.money -= bet
-                print(f'Проигрыш. ', end='')
-            print(f'На счету: {gamer.money} $')
+                break
+        self.game_end()
+
+    def game_set(self):
+        """
+        Попытка игры
+        :return: None
+        """
+        for self.round in range(self.REDOUBLE_COUNT):
+            self.bet = pow(2, self.round)
+            if self.get_game_status():
+                if self.game_round():
+                    break
+            else:
+                print(f'Недостаточно средств на счету для продолжения попытки. Начинаем новую попытку.')
+                break
+
+    def game_round(self):
+        """
+        Раунд игры
+        :return: True - выигрыш, False - проигрыш
+        :rtype: bool
+        """
+        print(self, end='')
+        if self.gamer.BET_COLOR == self.roulette.round()[0]:
+            self.gamer.money += self.bet
+            result =  True
+            str = color_text.RED + f'Выигрыш. '
+        else:
+            self.gamer.money -= self.bet
+            str = color_text.BLUE + f'Проигрыш. '
+            result =  False
+        str += color_text.RESET
+        print(str, end='')
+        print(self.gamer, end='')
+        if not result and self.round == self.REDOUBLE_COUNT - 1:
+            self.gamer.LOSS_COUNT += 1
+            print(color_text.BLUE + f'Поражение', end='')
+        print(color_text.RESET)
         return result
 
-    def game_end(self, gamer, bet):
-        if gamer.get_money() - bet < 0:
-            print(f'На счету недостаточно средств ({gamer.money} $)')
-            result = True
-        else:
+    def get_game_status(self):
+        """
+        Проверка окончания игры
+        :return: True - игра продолжается, False - игра завершена
+        :rtype: bool
+        """
+        result = True
+        if self.gamer.money == 0:
+            result = False
+        if self.gamer.money - self.bet < 0:
             result = False
         return result
+
+    def game_end(self):
+        """
+        Завершение игры
+        :return: None
+        """
+        print(f'Игра завершена. ', end='')
+        print(self.gamer, end='')
+        print(f'Поражений: {self.gamer.LOSS_COUNT}')
 
 if __name__ == '__main__':
     roulette = Roulette()
     gamer = Gamer()
-    game = Game()
-    for i in range(gamer.COUNT_SET):
-        if gamer.money == 0:
-            break
-        print(f'Раунд {i + 1}')
-        game.game_new()
-        for j in range(game.COUNT_REDOUBLE):
-            game_end = game.game_set(gamer, roulette)
-            if not game_end:
-                game.round = j + 2
-                if j == game.COUNT_REDOUBLE - 1:
-                    gamer.COUNT_LOSS += 1
-            else:
-                break
-    print(f'Игра завершена. На счету: {gamer.money} $. Поражений: {gamer.COUNT_LOSS}')
+    game = Game(roulette, gamer)
+    game.game_start()
