@@ -4,7 +4,7 @@ from colorama import Fore as color_text
 class Roulette:
     def __init__(self):
         """
-        Класс рулетки
+        Объект класса Рулетка
         :return: None
         """
         super().__init__()
@@ -23,7 +23,7 @@ class Roulette:
 
     def round(self):
         """
-        Какой цвет сыграл?
+        Крутить рулетку. На какой цвет попал шарик?
         Код цвета: 0 - красный, 1 - голубой
         :return: [цвет, код цвета]
         :rtype: (str, int)
@@ -34,7 +34,7 @@ class Roulette:
 class Gamer:
     def __init__(self):
         """
-        Класс игрока
+        Объект класса Игрок
         :return: None
         """
         super().__init__()
@@ -59,6 +59,8 @@ class Game:
     def __init__(self, roulette: Roulette, gamer: Gamer):
         """
         Объект класса Игра: roulette - рулетка, gamer - игрок
+        :param roulette: Рулетка: Рулетка
+        :param gamer: Игрок: Игрок
         :return: None
         """
         super().__init__()
@@ -120,7 +122,7 @@ class Game:
         if self.gamer.BET_COLOR == self.roulette.round()[0]:
             self.gamer.money += self.bet
             result =  True
-            str = color_text.RED + f'Выигрыш. '
+            str = color_text.RED + f'Выигрыш.  '
         else:
             self.gamer.money -= self.bet
             str = color_text.BLUE + f'Проигрыш. '
